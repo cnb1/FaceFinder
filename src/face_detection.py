@@ -10,17 +10,18 @@ from mediapipe.tasks.python import vision as mp_vision
 from deepface import DeepFace
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-KNOWN_FACES_DIR        = os.path.join(os.path.dirname(__file__), "../resources/known_faces")
-DETECTION_CONFIDENCE   = 0.6       # MediaPipe: min confidence to count as a face
-PROCESS_EVERY_N_FRAMES = 40         # Skip frames for performance
-SIMILARITY_THRESHOLD   = 0.5       # DeepFace: 0.0-1.0, lower = stricter match
-MODEL_NAME             = "Facenet"  # Options: Facenet, VGG-Face, ArcFace, DeepFace
-MODEL_PATH             = os.path.join(os.path.dirname(__file__), "blaze_face_short_range.tflite")
-MODEL_URL              = (
+KNOWN_FACES_DIR = os.path.join(os.path.dirname(__file__), "../resources/known_faces")
+DETECTION_CONFIDENCE = 0.6  # MediaPipe: min confidence to count as a face
+PROCESS_EVERY_N_FRAMES = 40  # Skip frames for performance
+SIMILARITY_THRESHOLD = 0.5  # DeepFace: 0.0-1.0, lower = stricter match
+MODEL_NAME = "Facenet"  # Options: Facenet, VGG-Face, ArcFace, DeepFace
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "blaze_face_full_range.tflite")
+MODEL_URL  = (
     "https://storage.googleapis.com/mediapipe-models/"
-    "face_detector/blaze_face_short_range/float16/1/"
-    "blaze_face_short_range.tflite"
+    "face_detector/blaze_face_full_range/float16/1/"
+    "blaze_face_full_range.tflite"
 )
+
 
 # ── Download MediaPipe model if needed ────────────────────────────────────────
 def ensure_model(path, url):
@@ -28,6 +29,7 @@ def ensure_model(path, url):
         print("Downloading face detection model...")
         urllib.request.urlretrieve(url, path)
         print(f"Model saved to '{path}'\n")
+
 
 # ── Load known faces from folder ──────────────────────────────────────────────
 def load_known_faces(directory):
@@ -74,6 +76,7 @@ def match_face(face_crop_bgr, known_faces):
             distance = result["distance"]
             # print(f"  Comparing to {name}: distance={distance:.3f} (threshold={SIMILARITY_THRESHOLD})")
             if result["verified"] and distance < SIMILARITY_THRESHOLD:
+                print(f"✅ Match found: {name} (distance={distance:.3f})")
                 return name, (0, 255, 0)  # Green
         except Exception as e:
             print(f"  DeepFace error for {name}: {e}")
@@ -91,7 +94,7 @@ def main():
         print("No known faces loaded — all detections will show as Unknown.")
 
     # Build MediaPipe face detector
-    base_options     = mp_python.BaseOptions(model_asset_path=MODEL_PATH)
+    base_options = mp_python.BaseOptions(model_asset_path=MODEL_PATH)
     detector_options = mp_vision.FaceDetectorOptions(
         base_options=base_options,
         min_detection_confidence=DETECTION_CONFIDENCE,
@@ -107,7 +110,7 @@ def main():
     print("  Green box = recognised face")
     print("  Red box   = unknown face\n")
 
-    frame_count  = 0
+    frame_count = 0
     last_results = []  # (x, y, w, h, name, color)
 
     while True:
@@ -119,7 +122,7 @@ def main():
         h_frame, w_frame = frame.shape[:2]
 
         if frame_count % PROCESS_EVERY_N_FRAMES == 0:
-            rgb      = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
             detection_result = detector.detect(mp_image)
 
@@ -127,12 +130,12 @@ def main():
 
             for detection in detection_result.detections:
                 bbox = detection.bounding_box
-                x  = max(0, bbox.origin_x)
-                y  = max(0, bbox.origin_y)
-                x2 = min(x + bbox.width,  w_frame)
+                x = max(0, bbox.origin_x)
+                y = max(0, bbox.origin_y)
+                x2 = min(x + bbox.width, w_frame)
                 y2 = min(y + bbox.height, h_frame)
-                w  = x2 - x
-                h  = y2 - y
+                w = x2 - x
+                h = y2 - y
 
                 if w <= 0 or h <= 0:
                     continue
@@ -155,7 +158,7 @@ def main():
             cv2.putText(frame, name, (x + 4, label_y),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
 
-        known_count   = sum(1 for r in last_results if r[4] != "Unknown")
+        known_count = sum(1 for r in last_results if r[4] != "Unknown")
         unknown_count = len(last_results) - known_count
         cv2.putText(frame, f"Known: {known_count}  Unknown: {unknown_count}",
                     (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
