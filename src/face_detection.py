@@ -30,8 +30,8 @@ def main():
         # Detect faces
         faces = face_cascade.detectMultiScale(
             gray,
-            scaleFactor=1.1,   # How much the image size is reduced at each scale
-            minNeighbors=5,    # How many neighbors each rectangle should have
+            scaleFactor=1.30,   # How much the image size is reduced at each scale
+            minNeighbors=4,    # How many neighbors each rectangle should have
             minSize=(30, 30)   # Minimum face size to detect
         )
 
