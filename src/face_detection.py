@@ -13,8 +13,8 @@ from deepface import DeepFace
 KNOWN_FACES_DIR = os.path.join(os.path.dirname(__file__), "../resources/known_faces")
 DETECTION_CONFIDENCE = 0.6  # MediaPipe: min confidence to count as a face
 PROCESS_EVERY_N_FRAMES = 40  # Skip frames for performance
-SIMILARITY_THRESHOLD = 0.5  # DeepFace: 0.0-1.0, lower = stricter match
-MODEL_NAME = "Facenet"  # Options: Facenet, VGG-Face, ArcFace, DeepFace
+SIMILARITY_THRESHOLD = 0.6  # DeepFace: 0.0-1.0, lower = stricter match
+MODEL_NAME = "Facenet512"  # Options: Facenet, VGG-Face, ArcFace, DeepFace
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "blaze_face_full_range.tflite")
 MODEL_URL  = (
     "https://storage.googleapis.com/mediapipe-models/"
